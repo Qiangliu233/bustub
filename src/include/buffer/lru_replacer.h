@@ -47,6 +47,10 @@ class LRUReplacer : public Replacer {
 
  private:
   // TODO(student): implement me!
+  std::mutex latch;  // thread safety
+  int capacity;      // max number of pages LRUReplacer can handle
+  std::list<frame_id_t> lru_list;
+	std::unordered_map<frame_id_t, std::list<frame_id_t>::iterator> lruMap;
 };
 
 }  // namespace bustub
