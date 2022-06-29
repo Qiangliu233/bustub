@@ -18,9 +18,34 @@ LRUReplacer::LRUReplacer(size_t num_pages) {}
 
 LRUReplacer::~LRUReplacer() = default;
 
-auto LRUReplacer::Victim(frame_id_t *frame_id) -> bool { return false; }
+auto LRUReplacer::Victim(frame_id_t *frame_id) -> bool { 
+  
+  latch.lock();
+  if (lruMap.empty()) {
+    latch.unlock();
+    return false;
+  }
 
-void LRUReplacer::Pin(frame_id_t frame_id) {}
+  
+  frame_id_t lru_frame = lru_list.back();
+  lruMap.erase(lru_frame);
+  
+  lru_list.pop_back();
+  *frame_id = lru_frame;
+  latch.unlock();
+  return true;
+ }
+
+void LRUReplacer::Pin(frame_id_t frame_id) {
+  latch.lock();
+
+  if (lruMap.count(frame_id) != 0) {
+    lru_list.erase(lruMap[frame_id]);
+    lruMap.erase(frame_id);
+  }
+
+  latch.unlock();    
+}
 
 void LRUReplacer::Unpin(frame_id_t frame_id) {}
 
